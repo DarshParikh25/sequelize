@@ -196,6 +196,4 @@ Each capstone will be split into tasks and lessons (DB design, models, migration
 1. One-paragraph explanation + real-world analogy
 2. Minimal code example with comments (ready to run)
 3. Step-by-step walkthrough of the code
-4. Two small exercises (one easy, one slightly harder)
-5. Answers & explanation
-6. Common pitfalls & debugging tips
+4. Common pitfalls & debugging tips

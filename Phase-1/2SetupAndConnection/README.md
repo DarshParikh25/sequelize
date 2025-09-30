@@ -4,8 +4,6 @@
 
 To use Sequelize with PostgreSQL in your Node.js + React project, you first need to set up Sequelize in the backend. This involves installing required packages, creating a connection to your Postgres database, and verifying that the connection works.
 
----
-
 ## Step 1: Install Required Packages
 
 ```bash
@@ -24,6 +22,7 @@ const { Sequelize } = require(`sequelize`);
 const sequelize = new Sequelize(`database`, `username`, `password`, {
   host: `localhost`,
   dialect: "postgres",
+  logging: console.log,
 });
 ```
 
