@@ -132,7 +132,7 @@ $ npm install --save oracledb # Oracle Database
 
 ---
 
-# PHASE 3 — **Advanced**&#x20;
+# PHASE 3 — **Advanced**
 
 These are advanced topics you can learn after the intermediate set.
 
