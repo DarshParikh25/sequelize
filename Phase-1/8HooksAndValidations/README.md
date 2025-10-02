@@ -12,6 +12,36 @@ Hooks are like the **check-in and check-out** staff at a hotel:
 - Before you check in → they verify your ID.
 - After you check out → they clean up the room.
 
+### All available hooks<hr/>
+
+- beforeValidate, afterValidate
+- validationFailed
+- beforeCreate, afterCreate
+- beforeDestroy, afterDestroy
+- beforeRestore, afterRestore
+- beforeUpdate, afterUpdate
+- beforeSave, afterSave
+- beforeUpsert, afterUpsert
+- beforeBulkCreate, afterBulkCreate
+- beforeBulkDestroy, afterBulkDestroy
+- beforeBulkRestore, afterBulkRestore
+- beforeBulkUpdate, afterBulkUpdate
+- beforeFind, afterFind
+- beforeFindAfterExpandIncludeAll
+- beforeFindAfterOptions
+- beforeCount
+- beforeDefine, afterDefine
+- beforeInit, afterInit
+- beforeAssociate, afterAssociate
+- beforeConnect, afterConnect
+- beforeDisconnect, afterDisconnect
+- beforePoolAcquire, afterPoolAcquire
+- beforeSync, afterSync
+- beforeBulkSync, afterBulkSync
+- beforeQuery, afterQuery
+
+> **Refer to the link for more information on [all available hooks.](https://github.com/sequelize/sequelize/blob/v6/src/hooks.js#L7)**
+
 ### Common Hooks<hr/>
 
 - `beforeCreate`, `afterCreate`
