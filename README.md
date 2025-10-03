@@ -197,3 +197,29 @@ Each capstone will be split into tasks and lessons (DB design, models, migration
 2. Minimal code example with comments (ready to run)
 3. Step-by-step walkthrough of the code
 4. Common pitfalls & debugging tips
+
+---
+
+## Download Roadmap
+
+- Click here to [download roadmap](https://docs.google.com/document/d/1RaSZQBVtQ7Rr1L3uE5vsFSqPM4yo9gNU/edit?usp=sharing&ouid=109390071948652773067&rtpof=true&sd=true) in **Word** format.
+- Click here to [download roadmap](https://drive.google.com/file/d/1LJ2fBip4bUsJa3_Jk1nlazK4xWga8Vxf/view?usp=sharing) in **PDF** format.
+
+---
+
+## 👤 Author
+
+### **Darsh Parikh**
+
+- 💼 GitHub: [@DarshParikh25](https://github.com/DarshParikh25)
+- 🔗 LinkedIn: [darshparikh](https://www.linkedin.com/in/darsh-parikh-66538a251)
+- 📫 Email: darshparikh00@gmail.com
+
+---
+
+## 📬 Feedback
+
+Have suggestions or questions? \
+Feel free to open an issue.
+
+> Made with ❤️ by **Darsh Parikh**
