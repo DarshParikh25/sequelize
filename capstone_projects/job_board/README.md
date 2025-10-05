@@ -717,7 +717,27 @@ try {
 }
 ```
 
-#### 8. Run the server<hr/>
+#### 8. Create the DB<hr/>
+
+If you have setup `config/config.json`, simply run:
+
+```bash
+npx sequelize-cli db:create
+```
+
+If you have setup `config/config.js` instead and have only `development` environment, run:
+
+```bash
+npx sequelize-cli db:create --config config/config.js
+```
+
+If you have setup `config/config.js` and have only different environments (`development`, `test`, `production`), run:
+
+```bash
+npx sequelize-cli db:create --config config/config.js --env development
+```
+
+#### 9. Run the server<hr/>
 
 ```bash
 npx nodemon server.js
