@@ -8,7 +8,14 @@ const Home = () => {
   const [jobs, setJobs] = useState([]);
 
   useEffect(() => {
-    api.get("/jobs").then((res) => setJobs(res.data));
+    (async () => {
+      try {
+        const res = await api.get("/jobs");
+        setJobs(res.data);
+      } catch (error) {
+        console.log(error);
+      }
+    })();
   }, []);
 
   return (
@@ -16,9 +23,9 @@ const Home = () => {
       <Navbar />
       <div className="max-w-3xl mx-auto mt-6 space-y-4">
         <h2 className="text-2xl font-bold mb-4">Latest Jobs</h2>
-        {jobs.map((job) => (
-          <JobCard key={job.id} job={job} />
-        ))}
+        {jobs.length > 0
+          ? jobs.map((job) => <JobCard key={job.id} job={job} />)
+          : "No jobs available right now."}
       </div>
     </div>
   );

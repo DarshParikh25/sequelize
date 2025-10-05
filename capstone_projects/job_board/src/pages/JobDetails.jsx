@@ -9,7 +9,14 @@ const JobDetails = () => {
   const [job, setJob] = useState(null);
 
   useEffect(() => {
-    api.get(`/jobs/${id}`).then((res) => setJob(res.data));
+    (async () => {
+      try {
+        const res = await api.get(`/jobs/${id}`);
+        setJob(res.data);
+      } catch (error) {
+        console.log(error?.message);
+      }
+    })();
   }, [id]);
 
   if (!job) return <p className="text-center mt-10">Loading job details...</p>;

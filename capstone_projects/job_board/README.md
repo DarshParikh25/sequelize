@@ -245,7 +245,14 @@ Pages Setup
     const [jobs, setJobs] = useState([]);
 
     useEffect(() => {
-      api.get("/jobs").then((res) => setJobs(res.data));
+      (async () => {
+        try {
+          const res = await api.get("/jobs");
+          setJobs(res.data);
+        } catch (error) {
+          console.log(error);
+        }
+      })();
     }, []);
 
     return (
@@ -260,6 +267,7 @@ Pages Setup
       </div>
     );
   };
+
   export default Home;
   ```
 
@@ -299,7 +307,14 @@ Pages Setup
     const [job, setJob] = useState(null);
 
     useEffect(() => {
-      api.get(`/jobs/${id}`).then((res) => setJob(res.data));
+      (async () => {
+        try {
+          const res = await api.get(`/jobs/${id}`);
+          setJob(res.data);
+        } catch (error) {
+          console.log(error?.message);
+        }
+      })();
     }, [id]);
 
     if (!job)
@@ -527,5 +542,9 @@ We now have:
 
 - Job listing page
 - Post job form
+- Login & Register forms
+- Job Details page
 - Routing
 - API connection placeholder
+
+### Phase 2: Backend Setup (Express + Sequelize + PostgreSQL)
