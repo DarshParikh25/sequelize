@@ -547,4 +547,194 @@ We now have:
 - Routing
 - API connection placeholder
 
-### Phase 2: Backend Setup (Express + Sequelize + PostgreSQL)
+### Phase 2: Backend Setup (Express + Sequelize + PostgreSQL)<hr/>
+
+#### Goal<hr/>
+
+Set up a clean Express backend connected to PostgreSQL via Sequelize, ready for defining models and routes.
+
+#### 1. Initialize the backend project<hr/>
+
+Create a separate backend folder:
+
+```bash
+mkdir backend
+cd backend
+npm init -y
+```
+
+Install all necessary packages:
+
+```bash
+npm install express sequelize pg pg-hstore cors dotenv
+npm install --save-dev nodemon
+```
+
+Explanation:
+
+| Package            | Purpose                                       |
+| ------------------ | --------------------------------------------- |
+| `express`          | Web framework for API routes                  |
+| `sequelize`        | ORM for SQL databases                         |
+| `pg` & `pg-hstore` | PostgreSQL dialect dependencies for Sequelize |
+| `cors`             | Enables frontend–backend communication        |
+| `dotenv`           | For environment variables                     |
+| `nodemon`          | Auto restarts the server during development   |
+
+#### 2. Initialize Sequelize Project<hr/>
+
+Install sequelize-cli:
+
+```bash
+npm install --save-dev sequelize-cli
+```
+
+Run this command:
+
+```bash
+npx sequelize-cli init
+```
+
+#### 3. Folder structure<hr/>
+
+```bash
+backend/
+│
+├── config/
+│   └── config.js           # DB configuration
+│
+├── migrations/
+│
+├── seeders/
+│
+├── models/
+│   └── index.js             # Sequelize initialization
+│
+├── .env                    # Environment variables
+├── server.js               # Entry point
+└── package.json
+```
+
+#### 4. Setup environment variables (.env)<hr/>
+
+```bash
+PORT=5000
+DB_HOST=localhost
+DB_USER=postgres
+DB_PASS=yourpassword
+DB_NAME=job_board
+DB_DIALECT=postgres
+```
+
+#### 5. Setup Express server (server.js)<hr/>
+
+```js
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import { sequelize } from "./models/index.js";
+
+dotenv.config();
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// Basic route to check API
+app.get("/", (req, res) => {
+  res.send("Job Board API is running...");
+});
+
+// Database connection test
+try {
+  await sequelize.authenticate();
+  console.log("Database connected successfully");
+} catch (err) {
+  console.error("DB connection failed:", err);
+}
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+```
+
+#### 6. Configure Sequelize connection (config/config.js)<hr/>
+
+```js
+import dotenv from "dotenv";
+
+dotenv.config();
+
+export default {
+  development: {
+    username: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    host: process.env.DB_HOST,
+    dialect: process.env.DB_DIALECT,
+  },
+  test: {
+    username: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    host: process.env.DB_HOST,
+    dialect: process.env.DB_DIALECT,
+  },
+  production: {
+    username: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    host: process.env.DB_HOST,
+    dialect: process.env.DB_DIALECT,
+  },
+};
+```
+
+#### 7. Initialize Sequelize (models/index.js)<hr/>
+
+```js
+import { Sequelize } from "sequelize";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+export const sequelize = new Sequelize(
+  process.env.DB_NAME,
+  process.env.DB_USER,
+  process.env.DB_PASSWORD,
+  {
+    host: process.env.DB_HOST,
+    dialect: process.env.DB_DIALECT,
+    logging: false, // Disable SQL query logs for cleaner console
+  }
+);
+
+// Test connection
+try {
+  await sequelize.authenticate();
+  console.log("Connection has been established successfully.");
+} catch (error) {
+  console.error("Unable to connect to the database:", error);
+}
+```
+
+#### 8. Run the server<hr/>
+
+```bash
+npx nodemon server.js
+```
+
+If everything’s correct, you’ll see:
+
+```arduino
+Database connected successfully
+Server running on port 5000
+```
+
+#### Common Pitfalls<hr/>
+
+| Problem                          | Cause                      | Solution                                    |
+| -------------------------------- | -------------------------- | ------------------------------------------- |
+| “Connection refused”             | PostgreSQL not running     | Start PostgreSQL service                    |
+| “password authentication failed” | Wrong DB_USER/DB_PASS      | Check `.env` credentials                    |
+| Sequelize version issues         | Wrong import/export syntax | Ensure `"type": "module"` in `package.json` |
+| CORS error from frontend         | No `cors()` middleware     | Use `app.use(cors())`                       |
