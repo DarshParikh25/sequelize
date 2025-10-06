@@ -750,11 +750,350 @@ Database connected successfully
 Server running on port 5000
 ```
 
-#### Common Pitfalls<hr/>
+### Phase 3 — Database Design (with Migrations)<hr/>
 
-| Problem                          | Cause                      | Solution                                    |
-| -------------------------------- | -------------------------- | ------------------------------------------- |
-| “Connection refused”             | PostgreSQL not running     | Start PostgreSQL service                    |
-| “password authentication failed” | Wrong DB_USER/DB_PASS      | Check `.env` credentials                    |
-| Sequelize version issues         | Wrong import/export syntax | Ensure `"type": "module"` in `package.json` |
-| CORS error from frontend         | No `cors()` middleware     | Use `app.use(cors())`                       |
+#### Goal<hr/>
+
+Define `User`, `Job`, and `Application` models, create their migration files, and establish associations — using Sequelize CLI migrations
+
+#### 1. Generate Models & Migrations (via CLI)<hr/>
+
+We’ll use Sequelize CLI to auto-generate both model + migration files.
+
+**User**<hr/>
+
+```bash
+npx sequelize-cli model:generate --name User --attributes name:string,email:string,password:string
+```
+
+**Job**<hr/>
+
+```bash
+npx sequelize-cli model:generate --name Job --attributes title:string,description:text,company:string,location:string
+```
+
+**Application**<hr/>
+
+```bash
+npx sequelize-cli model:generate --name Application --attributes userId:integer,jobId:integer,status:string
+```
+
+Each command creates:
+
+```pgsql
+/models/user.js
+/migrations/XXXXXXXXXXXX-create-user.js
+
+/models/job.js
+/migrations/XXXXXXXXXXXX-create-job.js
+
+/models/application.js
+/migrations/XXXXXXXXXXXX-create-application.js
+```
+
+#### 2. Adjust Migration and Module Files (optional but recommended)<hr/>
+
+1. **/models/user.js**
+
+```js
+"use strict";
+import { Model } from "sequelize";
+
+export default (sequelize, DataTypes) => {
+  class User extends Model {}
+  User.init(
+    {
+      // No foreign key columns
+      name: {
+        allowNull: false,
+        type: DataTypes.STRING,
+      },
+      email: {
+        allowNull: false,
+        type: DataTypes.STRING,
+        unique: true,
+        validate: {
+          isEmail: true,
+        },
+      },
+      password: {
+        allowNull: false,
+        type: DataTypes.STRING,
+        validate: {
+          len: [8, 15],
+        },
+      },
+    },
+    {
+      sequelize,
+      modelName: "User",
+    }
+  );
+  return User;
+};
+```
+
+2. **/migrations/XXXXXXXXXXXX-create-user.js**
+
+```js
+"use strict";
+/** @type {import('sequelize-cli').Migration} */
+export async function up(queryInterface, Sequelize) {
+  await queryInterface.createTable("Users", {
+    id: {
+      allowNull: false,
+      autoIncrement: true,
+      primaryKey: true,
+      type: Sequelize.INTEGER,
+    },
+    name: {
+      type: Sequelize.STRING,
+      allowNull: false,
+    },
+    email: {
+      type: Sequelize.STRING,
+      allowNull: false,
+      unique: true,
+    },
+    password: {
+      type: Sequelize.STRING,
+      allowNull: false,
+    },
+    createdAt: {
+      allowNull: false,
+      type: Sequelize.DATE,
+    },
+    updatedAt: {
+      allowNull: false,
+      type: Sequelize.DATE,
+    },
+  });
+}
+export async function down(queryInterface, Sequelize) {
+  await queryInterface.dropTable("Users");
+}
+```
+
+3. **/models/job.js**
+
+```js
+"use strict";
+import { Model } from "sequelize";
+
+export default (sequelize, DataTypes) => {
+  class Job extends Model {}
+  Job.init(
+    {
+      // No foreign key columns
+      title: {
+        allowNull: false,
+        type: DataTypes.STRING,
+      },
+      description: {
+        allowNull: false,
+        type: DataTypes.TEXT,
+      },
+      company: {
+        allowNull: false,
+        type: DataTypes.STRING,
+      },
+      location: {
+        allowNull: false,
+        type: DataTypes.STRING,
+      },
+    },
+    {
+      sequelize,
+      modelName: "Job",
+    }
+  );
+  return Job;
+};
+```
+
+4. **/migrations/XXXXXXXXXXXX-create-job.js**
+
+```js
+"use strict";
+/** @type {import('sequelize-cli').Migration} */
+export async function up(queryInterface, Sequelize) {
+  await queryInterface.createTable("Jobs", {
+    id: {
+      allowNull: false,
+      autoIncrement: true,
+      primaryKey: true,
+      type: Sequelize.INTEGER,
+    },
+    title: {
+      type: Sequelize.STRING,
+      allowNull: false,
+    },
+    description: {
+      type: Sequelize.TEXT,
+      allowNull: false,
+    },
+    company: {
+      type: Sequelize.STRING,
+      allowNull: false,
+    },
+    location: {
+      type: Sequelize.STRING,
+      allowNull: false,
+    },
+    createdAt: {
+      allowNull: false,
+      type: Sequelize.DATE,
+    },
+    updatedAt: {
+      allowNull: false,
+      type: Sequelize.DATE,
+    },
+  });
+}
+export async function down(queryInterface, Sequelize) {
+  await queryInterface.dropTable("Jobs");
+}
+```
+
+5. **/models/application.js**
+
+```js
+"use strict";
+import { Model } from "sequelize";
+
+export default (sequelize, DataTypes) => {
+  class Application extends Model {}
+  Application.init(
+    {
+      // No foreign key columns
+      status: {
+        allowNull: false,
+        type: DataTypes.STRING,
+      },
+    },
+    {
+      sequelize,
+      modelName: "Application",
+    }
+  );
+  return Application;
+};
+```
+
+6. **/migrations/XXXXXXXXXXXX-create-application.js**
+
+```js
+"use strict";
+/** @type {import('sequelize-cli').Migration} */
+export async function up(queryInterface, Sequelize) {
+  await queryInterface.createTable("Applications", {
+    id: {
+      allowNull: false,
+      autoIncrement: true,
+      primaryKey: true,
+      type: Sequelize.INTEGER,
+    },
+    userId: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      // Foreign key
+      reference: {
+        model: "Users",
+        key: "id",
+      },
+    },
+    jobId: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      // Foreign key
+      reference: {
+        model: "Jobs",
+        key: "id",
+      },
+    },
+    status: {
+      type: Sequelize.STRING,
+      allowNull: false,
+    },
+    createdAt: {
+      allowNull: false,
+      type: Sequelize.DATE,
+    },
+    updatedAt: {
+      allowNull: false,
+      type: Sequelize.DATE,
+    },
+  });
+}
+export async function down(queryInterface, Sequelize) {
+  await queryInterface.dropTable("Applications");
+}
+```
+
+#### Define Associations<hr/>
+
+`index.js`
+
+```js
+import User from "./user";
+import Job from "./job";
+import Application from "./application";
+import { sequelize } from "../config/db";
+
+User.hasMany(Application, { foreignKey: "userId" });
+Application.belongsTo(User, { foreignKey: "userId" });
+
+Job.hasMany(Application, { foreignKey: "jobId" });
+Application.belongsTo(Job, { foreignKey: "jobId" });
+
+export { sequelize, User, Job, Application };
+```
+
+#### Run Migrations<hr/>
+
+Now actually create tables in PostgreSQL:
+
+```bash
+npx sequelize-cli db:migrate
+```
+
+Output will confirm creation:
+
+```sql
+Loaded configuration file "config\config.js".
+Using environment "development".
+== xxxxxxxxxxxxxx-create-user: migrating =======
+== xxxxxxxxxxxxxx-create-user: migrated (0.042s)
+
+== xxxxxxxxxxxxxx-create-job: migrating =======
+== xxxxxxxxxxxxxx-create-job: migrated (0.021s)
+
+== xxxxxxxxxxxxxx-create-application: migrating =======
+== xxxxxxxxxxxxxx-create-application: migrated (0.018s)
+```
+
+#### Verify Table Structure<hr/>
+
+Open your Postgres client (like `psql` or pgAdmin) and check:
+
+```sql
+\d "Users";
+\d "Jobs";
+\d "Applications";
+```
+
+You’ll see all columns + foreign keys properly applied.
+
+#### Schema Rollback (if needed)<hr/>
+
+Undo last migration:
+
+```bash
+npx sequelize-cli db:migrate:undo
+```
+
+Undo all:
+
+```bash
+npx sequelize-cli db:migrate:undo:all
+```
