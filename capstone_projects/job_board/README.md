@@ -534,24 +534,13 @@ function App() {
 export default App;
 ```
 
----
-
-Frontend Ready!
-
-We now have:
-
-- Job listing page
-- Post job form
-- Login & Register forms
-- Job Details page
-- Routing
-- API connection placeholder
-
 ### Phase 2: Backend Setup (Express + Sequelize + PostgreSQL)<hr/>
 
 #### Goal<hr/>
 
 Set up a clean Express backend connected to PostgreSQL via Sequelize, ready for defining models and routes.
+
+####
 
 #### 1. Initialize the backend project<hr/>
 
@@ -601,17 +590,38 @@ npx sequelize-cli init
 backend/
 │
 ├── config/
+│   ├── db.js
 │   └── config.js           # DB configuration
 │
 ├── migrations/
+│   ├── xxxxxxxxxx-create-user.js
+│   ├── xxxxxxxxxx-create-job.js
+│   └── xxxxxxxxxx-create-application.js
 │
 ├── seeders/
 │
 ├── models/
+│   ├── user.js
+│   ├── job.js
+│   ├── application.js
 │   └── index.js             # Sequelize initialization
+│
+├── middlewares/
+│   └── authMiddleware.js
+│
+├── controllers/
+│   ├── userController.js
+│   ├── jobController.js
+│   └── applicationController.js
+│
+├── routes/
+│   ├── userRoutes.js
+│   ├── jobRoutes.js
+│   └── applicationRoutes.js
 │
 ├── .env                    # Environment variables
 ├── server.js               # Entry point
+├── app.js
 └── package.json
 ```
 
@@ -965,7 +975,14 @@ export default (sequelize, DataTypes) => {
   class Application extends Model {}
   Application.init(
     {
-      // No foreign key columns
+      userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      jobId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
       status: {
         allowNull: false,
         type: DataTypes.STRING,
@@ -1001,6 +1018,8 @@ export async function up(queryInterface, Sequelize) {
         model: "Users",
         key: "id",
       },
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
     },
     jobId: {
       type: Sequelize.INTEGER,
@@ -1009,6 +1028,8 @@ export async function up(queryInterface, Sequelize) {
       reference: {
         model: "Jobs",
         key: "id",
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
       },
     },
     status: {
@@ -1035,10 +1056,16 @@ export async function down(queryInterface, Sequelize) {
 `index.js`
 
 ```js
-import User from "./user";
-import Job from "./job";
-import Application from "./application";
+import { DataTypes } from "sequelize";
+
+import userModel from "./user";
+import jobModel from "./job";
+import applicationModel from "./application";
 import { sequelize } from "../config/db";
+
+const User = userModel(sequelize, DataTypes);
+const Job = jobModel(sequelize, DataTypes);
+const Application = applicationModel(sequelize, DataTypes);
 
 User.hasMany(Application, { foreignKey: "userId" });
 Application.belongsTo(User, { foreignKey: "userId" });
@@ -1096,4 +1123,395 @@ Undo all:
 
 ```bash
 npx sequelize-cli db:migrate:undo:all
+```
+
+### Phase 4 — Controllers & Routes<hr/>
+
+#### Goal<hr/>
+
+Build the backend logic (controllers (business logic) and routes (API endpoints)) that connects HTTP requests → Sequelize models → database.
+
+#### Dependencies required:<hr/>
+
+To install **bcryptjs** and **jsonwebtoken**, run following command in terminal:
+
+```bash
+npm install bcryptjs jsonwebtoken
+```
+
+#### 1. User Controller (controllers/userController.js)<hr/>
+
+```js
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+
+import { User } from "../models/index.js";
+
+// Create a user
+export const register = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(404).json({
+        message: "All fields are required!",
+      });
+    }
+
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      return res.status(400).json({
+        message: "Email already registered!",
+      });
+    }
+
+    if (password.length < 8 || password.length > 15) {
+      return res.status(400).json({
+        message: "Password must be minimum of 8 and maximum of 15 characters.",
+      });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const encryptedPassword = await bcrypt.hash(password, salt);
+
+    const newUser = await User.create({
+      name,
+      email,
+      password: encryptedPassword,
+    });
+
+    const token = jwt.sign({ id: newUser.id }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRES_IN || "1d",
+    });
+
+    return res.status(201).json({
+      message: "User created successfully!",
+      user: {
+        name: newUser.name,
+        email: newUser.email,
+      },
+      token,
+    });
+  } catch (error) {
+    console.log(error.message);
+    res.status(400).json({ error: error.message });
+  }
+};
+
+// Login user
+export const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "All fields are required!",
+      });
+    }
+
+    let existingUser = await User.findOne({ where: { email } });
+    if (!existingUser) {
+      return res.status(404).json({
+        message: "Email is not registered!",
+      });
+    }
+
+    const userPassword = await bcrypt.compare(password, existingUser.password);
+    if (!userPassword) {
+      return res.status(401).json({
+        message: "Incorrect password!",
+      });
+    }
+
+    const token = jwt.sign({ id: existingUser.id }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRES_IN || "1d",
+    });
+
+    return res.status(200).json({
+      message: "Login successfully!",
+      user: {
+        name: existingUser.name,
+        email: existingUser.email,
+      },
+      token,
+    });
+  } catch (error) {
+    console.log(error.message);
+    return res.status(500).json({
+      error: "Internal server error!",
+    });
+  }
+};
+
+// Get user by id
+export const getUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findByPk(id, { attributes: ["name", "email"] });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "Cannot find the user!",
+      });
+    }
+
+    return res.status(200).json({ user });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ error: "Internal server error!" });
+  }
+};
+```
+
+#### 2. User Routes (routes/userRoutes.js)<hr/>
+
+```js
+import express from "express";
+import { getUser, login, register } from "../controllers/userController.js";
+
+const userRouter = express.Router();
+
+userRouter.post("/register", register);
+userRouter.post("/login", login);
+userRouter.get("/:id", getUser);
+
+export default userRouter;
+```
+
+#### 3. Job Controller (controllers/jobController.js)<hr/>
+
+```js
+import { Job } from "../models/index.js";
+
+// Create a new job
+export const createJob = async (req, res) => {
+  try {
+    const { title, description, location, company } = req.body;
+
+    if (!title || !description || !location || !company) {
+      return res.status(400).json({
+        message: "All fields are required!",
+      });
+    }
+
+    const newJob = await Job.create({
+      title,
+      description,
+      company,
+      location,
+    });
+
+    return res.status(201).json({
+      message: "Job created successfully!",
+      job: {
+        title: newJob.title,
+        description: newJob.description,
+        company: newJob.company,
+        location: newJob.location,
+      },
+    });
+  } catch (error) {
+    console.log(error.message);
+    res.status(400).json({ error: error.message });
+  }
+};
+
+// Get all jobs
+export const getAllJobs = async (_req, res) => {
+  try {
+    const jobs = await Job.findAll();
+
+    if (jobs.length === 0) {
+      return res.status(200).json({
+        message: "No jobs found!",
+      });
+    }
+
+    return res.status(200).json(jobs);
+  } catch (error) {
+    console.log(error.message);
+    res.status(400).json({ error: error.message });
+  }
+};
+
+// Get a job by id
+export const getJob = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const job = await Job.findByPk(id);
+
+    if (!job) {
+      return res.status(404).json({
+        message: "Job does not exist!",
+      });
+    }
+
+    res.status(200).json({
+      title: job.title,
+      description: job.description,
+      company: job.company,
+      location: job.location,
+    });
+  } catch (error) {
+    console.log(error.message);
+    res.status(400).json({ error: error.message });
+  }
+};
+```
+
+#### 4. Job Routes (routes/jobRoutes.js)<hr/>
+
+```js
+import express from "express";
+
+import { createJob, getAllJobs, getJob } from "../controllers/jobController.js";
+
+const jobRouter = express.Router();
+
+jobRouter.post("/post", createJob);
+jobRouter.get("/", getAllJobs);
+jobRouter.get("/:id", getJob);
+
+export default jobRouter;
+```
+
+#### 5. Authentication Middleware (middlewares/authMiddleware.js)<hr/>
+
+```js
+import jwt from "jsonwebtoken";
+
+const authMiddleware = async (req, res, next) => {
+  try {
+    const { authorization } = req.headers;
+
+    if (!authorization || !authorization.startsWith("Bearer ")) {
+      return res.status(401).json({
+        message: "Please login again!",
+      });
+    }
+
+    const token = authorization.split(" ")[1];
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+    console.log(decodedToken);
+
+    req.user = { id: decodedToken.id };
+
+    next();
+  } catch (error) {
+    console.log(error.message);
+    return res.status(403).json({
+      message: "Session expired!",
+    });
+  }
+};
+
+export default authMiddleware;
+```
+
+#### 6. Application Controller (controllers/applicationController.js)<hr/>
+
+```js
+import { Application } from "../models/index.js";
+
+// Create a new application
+export const createApplication = async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    const { id } = req.user;
+
+    const newApplication = await Application.create({
+      userId: id,
+      jobId,
+      status: "applied",
+    });
+
+    return res.status(201).json({
+      message: "Application created successfully!",
+      application: {
+        userId: newApplication.userId,
+        jobId: newApplication.jobId,
+        status: newApplication.status,
+      },
+    });
+  } catch (error) {
+    console.log(error.message);
+    return res.status(400).json({
+      message: error.message,
+    });
+  }
+};
+
+// Get all applications of the user
+export const getAllUserApplications = async (req, res) => {
+  try {
+    const { id } = req.user;
+
+    const applications = await Application.findAll(
+      { attributes: ["userId", "jobId", "status"] },
+      { where: { userId: id } }
+    );
+
+    if (applications.length === 0) {
+      return res.status(404).json({
+        message: "Application not found!",
+      });
+    }
+
+    return res.status(200).json(applications);
+  } catch (error) {
+    console.log(error.message);
+    return res.status(400).json({
+      message: error.message,
+    });
+  }
+};
+```
+
+#### 7. Application Routes (routes/applicationRoutes.js)<hr/>
+
+```js
+import express from "express";
+import authMiddleware from "../middlewares/authMiddleware.js";
+import {
+  createApplication,
+  getAllUserApplications,
+} from "../controllers/applicationController.js";
+
+const applicationRouter = express.Router();
+
+applicationRouter.post("/job/:jobId/apply", authMiddleware, createApplication);
+applicationRouter.get(
+  "/user/applications",
+  authMiddleware,
+  getAllUserApplications
+);
+
+export default applicationRouter;
+```
+
+#### 8. app.js<hr/>
+
+```js
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+
+import userRouter from "./routes/userRoutes.js";
+import jobRouter from "./routes/jobRoutes.js";
+import applicationRouter from "./routes/applicationRoutes.js";
+
+dotenv.config();
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+app.use("/api/users", userRouter);
+app.use("/api/jobs", jobRouter);
+app.use("/api", applicationRouter);
+
+export default app;
 ```

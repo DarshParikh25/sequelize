@@ -1,7 +1,13 @@
-import User from "./user";
-import Job from "./job";
-import Application from "./application";
-import { sequelize } from "../config/db";
+import { DataTypes } from "sequelize";
+
+import userModel from "./user.js";
+import jobModel from "./job.js";
+import applicationModel from "./application.js";
+import { sequelize } from "../config/db.js";
+
+const User = userModel(sequelize, DataTypes);
+const Job = jobModel(sequelize, DataTypes);
+const Application = applicationModel(sequelize, DataTypes);
 
 User.hasMany(Application, { foreignKey: "userId" });
 Application.belongsTo(User, { foreignKey: "userId" });

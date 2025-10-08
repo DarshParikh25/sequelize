@@ -5,7 +5,14 @@ export default (sequelize, DataTypes) => {
   class Application extends Model {}
   Application.init(
     {
-      // No foreign key columns
+      userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      jobId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
       status: {
         allowNull: false,
         type: DataTypes.STRING,

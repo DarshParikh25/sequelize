@@ -16,6 +16,8 @@ export async function up(queryInterface, Sequelize) {
         model: "Users",
         key: "id",
       },
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
     },
     jobId: {
       type: Sequelize.INTEGER,
@@ -25,6 +27,8 @@ export async function up(queryInterface, Sequelize) {
         model: "Jobs",
         key: "id",
       },
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
     },
     status: {
       type: Sequelize.STRING,

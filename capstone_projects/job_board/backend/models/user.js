@@ -21,9 +21,6 @@ export default (sequelize, DataTypes) => {
       password: {
         allowNull: false,
         type: DataTypes.STRING,
-        validate: {
-          len: [8, 15],
-        },
       },
     },
     {
