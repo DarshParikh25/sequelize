@@ -36,7 +36,9 @@ export const createJob = async (req, res) => {
 // Get all jobs
 export const getAllJobs = async (_req, res) => {
   try {
-    const jobs = await Job.findAll();
+    const jobs = await Job.findAll({
+      attributes: ["id", "title", "description", "company", "location"],
+    });
 
     if (jobs.length === 0) {
       return res.status(200).json({
@@ -56,7 +58,9 @@ export const getJob = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const job = await Job.findByPk(id);
+    const job = await Job.findByPk(id, {
+      attributes: ["id", "title", "company", "description", "location"],
+    });
 
     if (!job) {
       return res.status(404).json({
@@ -64,12 +68,7 @@ export const getJob = async (req, res) => {
       });
     }
 
-    res.status(200).json({
-      title: job.title,
-      description: job.description,
-      company: job.company,
-      location: job.location,
-    });
+    res.status(200).json(job);
   } catch (error) {
     console.log(error.message);
     res.status(400).json({ error: error.message });

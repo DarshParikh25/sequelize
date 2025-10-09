@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import Navbar from "../components/Navbar";
-import { api } from "../services/api";
 import React from "react";
+import { toast } from "react-toastify";
+
+import Navbar from "../components/Navbar";
+import API from "../api/axios";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -20,11 +22,11 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await api.post("/auth/register", formData);
-      alert("Registration successful! You can now log in.");
+      await API.post("/users/register", formData);
+      toast.success("Registration successful! You can now log in.");
       navigate("/login");
     } catch (err) {
-      alert(err.response?.data?.message || "Registration failed!");
+      toast.error(err.response?.data?.message || "Registration failed!");
     }
   };
 

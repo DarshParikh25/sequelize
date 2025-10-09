@@ -2,7 +2,7 @@ import Navbar from "../components/Navbar";
 import JobForm from "../components/JobForm";
 import React from "react";
 
-const PostJob = () => {
+const PostJob = ({ loggedIn }) => {
   return (
     <div>
       <Navbar />
@@ -10,7 +10,7 @@ const PostJob = () => {
         <h2 className="text-2xl font-semibold mb-4 text-gray-800">
           Post a New Job
         </h2>
-        <JobForm />
+        <JobForm loggedIn={loggedIn} />
       </div>
     </div>
   );

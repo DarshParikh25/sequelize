@@ -1,17 +1,21 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import Navbar from "../components/Navbar";
-import { api } from "../services/api";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "react-toastify";
 import React from "react";
 
-const JobDetails = () => {
+import Navbar from "../components/Navbar";
+import API from "../api/axios";
+
+const JobDetails = ({ loggedIn }) => {
   const { id } = useParams(); // get job ID from the URL
   const [job, setJob] = useState(null);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     (async () => {
       try {
-        const res = await api.get(`/jobs/${id}`);
+        const res = await API.get(`/jobs/${id}`);
         setJob(res.data);
       } catch (error) {
         console.log(error?.message);
@@ -20,6 +24,19 @@ const JobDetails = () => {
   }, [id]);
 
   if (!job) return <p className="text-center mt-10">Loading job details...</p>;
+
+  const handleApply = async () => {
+    if (loggedIn) {
+      const res = await API.post(`/job/${id}/apply`);
+      console.log(res);
+
+      toast.success(res.data.message);
+      navigate("/");
+    } else {
+      toast.error("Please login first!");
+      navigate("/login");
+    }
+  };
 
   return (
     <div>
@@ -30,7 +47,10 @@ const JobDetails = () => {
         <p className="text-gray-500 mb-4">{job.location}</p>
         <p className="text-gray-800 leading-relaxed">{job.description}</p>
 
-        <button className="mt-6 bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 transition">
+        <button
+          onClick={handleApply}
+          className="mt-6 bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 transition"
+        >
           Apply Now
         </button>
       </div>

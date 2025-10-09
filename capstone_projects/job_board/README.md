@@ -45,8 +45,6 @@
 | **3** | Database Design      | Define models (User, Job, Application) and associations               |
 | **4** | Controllers & Routes | CRUD APIs for jobs and user authentication                            |
 | **5** | Frontend Integration | Connect frontend (Axios) → backend (API calls)                        |
-| **6** | Advanced Features    | Pagination, search, filters, auth middleware                          |
-| **7** | Testing & Deployment | Postman testing, local DB sync, environment setup                     |
 
 ### Phase 1 — Frontend Setup (React + Vite + TailwindCSS)<hr/>
 

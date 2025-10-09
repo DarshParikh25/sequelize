@@ -1,8 +1,9 @@
+import { useEffect, useState } from "react";
+import React from "react";
+
 import Navbar from "../components/Navbar";
 import JobCard from "../components/JobCard";
-import { useEffect, useState } from "react";
-import { api } from "../services/api";
-import React from "react";
+import API from "../api/axios";
 
 const Home = () => {
   const [jobs, setJobs] = useState([]);
@@ -10,7 +11,7 @@ const Home = () => {
   useEffect(() => {
     (async () => {
       try {
-        const res = await api.get("/jobs");
+        const res = await API.get("/jobs");
         setJobs(res.data);
       } catch (error) {
         console.log(error);
@@ -30,4 +31,5 @@ const Home = () => {
     </div>
   );
 };
+
 export default Home;

@@ -14,6 +14,6 @@ applicationRouter.get(
   authMiddleware,
   getAllUserApplications
 );
-applicationRouter.get("/applications", _getAllApplications);
+// applicationRouter.get("/applications", _getAllApplications);
 
 export default applicationRouter;

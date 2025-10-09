@@ -6,7 +6,7 @@ export const createApplication = async (req, res) => {
     const { jobId } = req.params;
     const { id } = req.user;
 
-    const newApplication = await Application.create({
+    await Application.create({
       userId: id,
       jobId,
       status: "applied",
@@ -14,11 +14,6 @@ export const createApplication = async (req, res) => {
 
     return res.status(201).json({
       message: "Application created successfully!",
-      application: {
-        userId: newApplication.userId,
-        jobId: newApplication.jobId,
-        status: newApplication.status,
-      },
     });
   } catch (error) {
     console.log(error.message);

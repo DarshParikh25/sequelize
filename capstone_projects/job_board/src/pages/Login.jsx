@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import Navbar from "../components/Navbar";
-import { api } from "../services/api";
 import React from "react";
+import { toast } from "react-toastify";
 
-const Login = () => {
+import Navbar from "../components/Navbar";
+import API from "../api/axios";
+
+const Login = ({ setLoggedIn }) => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const navigate = useNavigate();
 
@@ -15,12 +17,13 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await api.post("/auth/login", formData);
+      const res = await API.post("/users/login", formData);
       localStorage.setItem("token", res.data.token);
-      alert("Login successful!");
+      toast.success("Login successful!");
+      setLoggedIn(true);
       navigate("/");
     } catch (err) {
-      alert(err.response?.data?.message || "Login failed!");
+      toast.error(err.response?.data?.message || "Login failed!");
     }
   };
 

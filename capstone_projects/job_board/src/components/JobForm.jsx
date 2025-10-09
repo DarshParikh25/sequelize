@@ -1,8 +1,12 @@
 import { useState } from "react";
-import { api } from "../services/api";
 import React from "react";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
-const JobForm = () => {
+import API from "../api/axios";
+
+const JobForm = ({ loggedIn }) => {
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     title: "",
     company: "",
@@ -15,8 +19,18 @@ const JobForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await api.post("/jobs", form);
-    alert("Job Posted!");
+    try {
+      if (loggedIn) {
+        await API.post("/jobs/post", form);
+        toast.success("Job Posted!");
+        navigate("/");
+      } else {
+        toast.error("Please login first.");
+        navigate("/login");
+      }
+    } catch (error) {
+      toast.error(error?.data?.message || "Please try again!");
+    }
   };
 
   return (
